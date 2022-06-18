@@ -4,7 +4,7 @@
 #include <wchar.h>
 #include <stdbool.h>
 #include "types.h"
-#include "opaque_types.h"
+#include "utilities.h"
 
 typedef struct {
     bool is_initialized;
@@ -14,7 +14,7 @@ typedef struct {
 } Map;
 
 Map *map_init();
-struct Position map_search_for_wchar(const Map *const map, wchar_t wch);
+struct Position map_search_for_wchar(Map *const map, const wchar_t wch, const bool replace_wch);
 
 
 #endif

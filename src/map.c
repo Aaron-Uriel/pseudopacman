@@ -22,9 +22,9 @@ Map *map_init() {
                 case '\n': goto column_end;
             }
         }
-        column_end:
+        column_end: ;
     }
-    file_end:
+    file_end: ;
     rewind(map_file);
 
     const uint8_t map_lenght = row, map_width = column;
@@ -40,6 +40,8 @@ Map *map_init() {
         }
     }
     new_map->is_initialized = true;
+
+    return new_map;
 }
 
 wchar_t *map_get_wchar_from_coords(const Map *const map, uint8_t y, uint8_t x) {
@@ -49,16 +51,22 @@ wchar_t *map_get_wchar_from_coords(const Map *const map, uint8_t y, uint8_t x) {
     return &map_matrix[y][x];
 }
 
-struct Position map_search_for_wchar(const Map *const map, wchar_t wch) {
+enum { REPLACE_WCH_FALSE, REPLACE_WCH_TRUE };
+
+struct Position map_search_for_wchar(Map *const map, const wchar_t wch, const bool replace_wch) {
     assert(map->is_initialized == true);
 
-    struct Position wch_position;
-
+    struct Position wch_position = { 0 };
+    wchar_t *test_wch_ptr;
     for (uint8_t row = 0; row < map->_length; row++) {
         for (uint8_t column = 0; column < map->_width; column++) {
-            if (map_get_wchar_from_coords(map, row, column) == wch ) {
+            test_wch_ptr = map_get_wchar_from_coords(map, row, column);
+
+            if (*test_wch_ptr == wch ) {
+                if (replace_wch == REPLACE_WCH_TRUE) { *test_wch_ptr = ' '; }
                 wch_position.y = row;
                 wch_position.x = column;
+                return wch_position;
             }
         }
     }
