@@ -32,11 +32,21 @@ Map *map_init() {
     new_map->_size.length = map_lenght;
     new_map->_size.width = map_width;
 
+    new_map->_abstact_size.length = map_lenght / 2;
+    new_map->_abstact_size.width  = map_width / 2;
+
     wchar_t (*map_matrix)[map_width] = (wchar_t(*)[map_width]) new_map->_raw_map;
 
+    wchar_t current_wch;
     for (row = 0; row < map_lenght; row++) {
         for (column = 0; column < map_width; column++) {
-            map_matrix[row][column] = fgetwc(map_file);
+            current_wch = fgetwc(map_file);
+            switch (current_wch) {
+                case '\n':
+                    continue;
+                default:
+                    map_matrix[row][column] = current_wch;
+            }
         }
     }
     new_map->is_initialized = true;
@@ -74,16 +84,16 @@ struct Position map_search_for_wchar(Map *const map, const wchar_t wch, const bo
     return wch_position;
 }
 
-struct Resolution map_get_size(const Map *const map) {
+struct Resolution map_get_size(const Map *const map, const bool size_kind) {
     assert(map->is_initialized == true);
 
-    return map->_size;
+    return (size_kind == KIND_ABSTRACT)? map->_abstact_size: map->_size;
 }
 
 void map_draw(const Map *const map, const WINDOW *const window) {
     assert(map->is_initialized == true);
 
-    const struct Resolution map_size = map_get_size(map);
+    const struct Resolution map_size = map_get_size(map, KIND_REAL);
     struct Resolution window_size;
     getmaxyx(window, window_size.length, window_size.width);
     assert((map_size.length <= window_size.length) && (map_size.width <= window_size.width));

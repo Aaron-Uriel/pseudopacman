@@ -12,7 +12,7 @@ void main_game() {
     }
 
     // Inicialización de las ventanas
-    const struct Resolution game_window_resolution = map_get_size(map);
+    const struct Resolution game_window_resolution = map_get_size(map, KIND_REAL);
     WINDOW *const game_window_border = newwin(game_window_resolution.length+2, game_window_resolution.width+2, 0, 0);
     WINDOW *const game_window        = newwin(game_window_resolution.length, game_window_resolution.width, 1, 1);
 
