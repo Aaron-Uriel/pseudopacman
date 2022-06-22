@@ -11,7 +11,8 @@ Entity *entity_init(Map *const map, const enum EntityID id, const wchar_t aspect
 
     new_entity->_position = new_entity_position;
     new_entity->_previous_position = new_entity_position;
-    new_entity->_id = id;
+    new_entity->id = id;
+    new_entity->color = id + 1;
     wcscpy(new_entity->aspect, aspect);
 
     return new_entity;

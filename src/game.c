@@ -8,7 +8,7 @@ void main_game() {
     // Inicialización de entidades y objetos
     Map *const map = map_init();
     Entity *entities[ENTITY_LIMIT];
-    for (enum EntityID id = 0; id < ENTITY_LIMIT; id++) {
+    for (enum EntityID id = ENTITY_PACMAN; id < ENTITY_LIMIT; id++) {
         entities[id] = entity_init(map, id, L"██");
     }
 
@@ -37,7 +37,10 @@ void draw_entities(WINDOW *const window, const Entity *entities[ENTITY_LIMIT]) {
     for (uint8_t i = 0; i < ENTITY_LIMIT; i++) {
         current_entity     = entities[i];
         current_entity_pos = entity_get_position(current_entity, KIND_REAL);
+
+        wattron  (window, COLOR_PAIR(current_entity->color));
         mvwprintw(window, current_entity_pos.y, current_entity_pos.x, "%ls", current_entity->aspect);
+        wattroff(window, COLOR_PAIR(current_entity->color));
     }
 
 }

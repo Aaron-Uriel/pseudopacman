@@ -20,6 +20,8 @@ int main() {
     noecho();
     curs_set(FALSE);
     getmaxyx(stdscr, terminal_resolution.length, terminal_resolution.width);
+    start_color();
+    use_default_colors();
     set_color_pairs();
     assert(has_colors() == true);
 
@@ -71,9 +73,9 @@ int main() {
 }
 
 void set_color_pairs() {
-    init_pair(ENTITY_PACMAN, COLOR_YELLOW, COLOR_BLACK);
-    init_pair(ENTITY_BLINKY, COLOR_RED, COLOR_BLACK);
-    init_pair(ENTITY_PINKY,  COLOR_WHITE, COLOR_BLACK);
-    init_pair(ENTITY_INKY,   COLOR_CYAN, COLOR_BLACK);
-    init_pair(ENTITY_CLYDE,  COLOR_MAGENTA, COLOR_BLACK);
+    init_pair(COLOR_PACMAN, COLOR_YELLOW, COLOR_BLACK);
+    init_pair(COLOR_BLINKY, COLOR_RED, COLOR_BLACK);
+    init_pair(COLOR_PINKY,  COLOR_WHITE, COLOR_BLACK);
+    init_pair(COLOR_INKY,   COLOR_CYAN, COLOR_BLACK);
+    init_pair(COLOR_CLYDE,  COLOR_MAGENTA, COLOR_BLACK);
 }
