@@ -58,7 +58,7 @@ wchar_t *map_get_wchar_from_coords(const Map *const map, uint8_t y, uint8_t x) {
     return &map_matrix[y][x];
 }
 
-struct Position map_search_for_wchar(Map *const map, const wchar_t wch, const bool replace_wch, const enum Kind position_kind) {
+struct Position map_search_for_wchar(Map *const map, const wchar_t wch, const enum ReplaceWch replace_wch) {
     assert(map->is_initialized == true);
 
     struct Position wch_position = { 0 };
@@ -77,33 +77,19 @@ struct Position map_search_for_wchar(Map *const map, const wchar_t wch, const bo
     }
     loop_exit: ;
 
-    if (position_kind == KIND_ABSTRACT) {
-        wch_position.x /= 2;
-    }
-
     return wch_position;
 }
 
-struct Resolution map_get_size(const Map *const map, const enum Kind size_kind) {
+struct Resolution map_get_size(const Map *const map) {
     assert(map->is_initialized == true);
 
-    struct Resolution size;
-    switch (size_kind) {
-        case KIND_ABSTRACT:
-            size.length = map->_size.length;
-            size.width  = map->_size.width / 2;
-            break;
-        case KIND_REAL:
-            size = map->_size;
-    }
-
-    return size;
+    return map->_size;
 }
 
 void map_draw(const Map *const map, const WINDOW *const window) {
     assert(map->is_initialized == true);
 
-    const struct Resolution map_size = map_get_size(map, KIND_REAL);
+    const struct Resolution map_size = map_get_size(map);
     struct Resolution window_size;
     getmaxyx(window, window_size.length, window_size.width);
     assert((map_size.length <= window_size.length) && (map_size.width <= window_size.width));

@@ -12,12 +12,12 @@ typedef struct {
     wchar_t _raw_map[];
 } Map;
 
-enum Kind { KIND_REAL, KIND_ABSTRACT };
 enum ReplaceWch { REPLACE_WCH_FALSE, REPLACE_WCH_TRUE };
 
 Map *map_init();
-struct Resolution map_get_size(const Map *const map, const enum Kind size_kind);
-struct Position map_search_for_wchar(Map *const map, const wchar_t wch, const bool replace_wch, const enum Kind position_kind);
+struct Resolution map_get_size(const Map *const map);
+wchar_t *map_get_wchar_from_coords(const Map *const map, uint8_t y, uint8_t x);
+struct Position map_search_for_wchar(Map *const map, const wchar_t wch, const enum ReplaceWch replace_wch);
 void map_draw(const Map *const map, const WINDOW *const window);
 
 
