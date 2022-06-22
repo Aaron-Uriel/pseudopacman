@@ -2,6 +2,7 @@
 #include <locale.h>
 #include <assert.h>
 #include "utilities.h"
+#include "entity.h"
 
 struct Resolution terminal_resolution;
 

@@ -2,13 +2,14 @@
 #include "map.h"
 #include "entity.h"
 
+void draw_entities(WINDOW *const window, const Entity *entities[ENTITY_LIMIT]);
+
 void main_game() {
     // Inicialización de entidades y objetos
     Map *const map = map_init();
-    Pacman *const pacman = pacman_init(map);
-    Ghost *ghosts[ENTITY_LIMIT - 1];
-    for (enum EntityID id = 1; id < ENTITY_LIMIT; id++) {
-        ghosts[id] = ghost_init(map, id);
+    Entity *entities[ENTITY_LIMIT];
+    for (enum EntityID id = 0; id < ENTITY_LIMIT; id++) {
+        entities[id] = entity_init(map, id, L"██");
     }
 
     // Inicialización de las ventanas
@@ -23,7 +24,20 @@ void main_game() {
     wrefresh(game_window);
 
     do {
+        draw_entities(game_window, /*(const Entity**)*/entities);
+
         wgetch(game_window);
     } while(true);
+
+}
+
+void draw_entities(WINDOW *const window, const Entity *entities[ENTITY_LIMIT]) {
+    const  Entity   *current_entity;
+    struct Position current_entity_pos;
+    for (uint8_t i = 0; i < ENTITY_LIMIT; i++) {
+        current_entity     = entities[i];
+        current_entity_pos = entity_get_position(current_entity, KIND_REAL);
+        mvwprintw(window, current_entity_pos.y, current_entity_pos.x, "%ls", current_entity->aspect);
+    }
 
 }

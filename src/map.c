@@ -32,9 +32,6 @@ Map *map_init() {
     new_map->_size.length = map_lenght;
     new_map->_size.width = map_width;
 
-    new_map->_abstact_size.length = map_lenght / 2;
-    new_map->_abstact_size.width  = map_width / 2;
-
     wchar_t (*map_matrix)[map_width] = (wchar_t(*)[map_width]) new_map->_raw_map;
 
     wchar_t current_wch;
@@ -61,9 +58,7 @@ wchar_t *map_get_wchar_from_coords(const Map *const map, uint8_t y, uint8_t x) {
     return &map_matrix[y][x];
 }
 
-enum { REPLACE_WCH_FALSE, REPLACE_WCH_TRUE };
-
-struct Position map_search_for_wchar(Map *const map, const wchar_t wch, const bool replace_wch) {
+struct Position map_search_for_wchar(Map *const map, const wchar_t wch, const bool replace_wch, const enum Kind position_kind) {
     assert(map->is_initialized == true);
 
     struct Position wch_position = { 0 };
@@ -76,18 +71,33 @@ struct Position map_search_for_wchar(Map *const map, const wchar_t wch, const bo
                 if (replace_wch == REPLACE_WCH_TRUE) { *test_wch_ptr = ' '; }
                 wch_position.y = row;
                 wch_position.x = column;
-                return wch_position;
+                goto loop_exit;
             }
         }
+    }
+    loop_exit: ;
+
+    if (position_kind == KIND_ABSTRACT) {
+        wch_position.x /= 2;
     }
 
     return wch_position;
 }
 
-struct Resolution map_get_size(const Map *const map, const bool size_kind) {
+struct Resolution map_get_size(const Map *const map, const enum Kind size_kind) {
     assert(map->is_initialized == true);
 
-    return (size_kind == KIND_ABSTRACT)? map->_abstact_size: map->_size;
+    struct Resolution size;
+    switch (size_kind) {
+        case KIND_ABSTRACT:
+            size.length = map->_size.length;
+            size.width  = map->_size.width / 2;
+            break;
+        case KIND_REAL:
+            size = map->_size;
+    }
+
+    return size;
 }
 
 void map_draw(const Map *const map, const WINDOW *const window) {
