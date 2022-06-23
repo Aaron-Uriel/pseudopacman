@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <wchar.h>
 #include <string.h>
+#include <assert.h>
 #include "entity.h"
 
 Entity *entity_init(Map *const map, const enum EntityID id, const wchar_t aspect[3]) {
@@ -32,7 +33,7 @@ struct Position entity_get_position(const Entity *const entity, const enum Posit
     return position;
 }
 
-void entity_new_relative_position(Entity *const entity, const Map *const map, const int8_t delta_y, const int8_t delta_x) {
+uint8_t entity_new_relative_position(Entity *const entity, const Map *const map, const int8_t delta_y, const int8_t delta_x) {
     entity->_previous_position = entity->_position;
 
     struct Resolution map_size = map_get_size(map);
@@ -43,6 +44,40 @@ void entity_new_relative_position(Entity *const entity, const Map *const map, co
         if (test_wch == L' ') {
             entity->_position.y += delta_y;
             entity->_position.x += delta_x;
+            return 0;
         }
     }
+    return 1;
+}
+
+bool is_cardinal_point_available(const Entity *const entity, const Map *const map, const enum Cardinal cardinal_point) {
+    struct Position test_position = entity_get_position(entity, POSITION_TYPE_CURRENT);
+    switch (cardinal_point) {
+        case CARDINAL_NORTH: test_position.y -= 1; break;
+        case CARDINAL_SOUTH: test_position.y += 1; break;
+        case CARDINAL_EAST: test_position.x += 1; break;
+        case CARDINAL_WEST: test_position.x -= 1; break;
+        default: assert(false && "Default case should not be possible");
+    }
+
+    wchar_t test_wch = *map_get_wchar_from_coords(map, test_position.y, test_position.x);
+    return (test_wch == ' ')? true: false;
+}
+
+struct AvailablePaths entity_get_available_paths(const Entity *const entity, const Map *const map) {
+    struct AvailablePaths available_paths = { 0 };
+    if (*map_get_wchar_from_coords(map, entity->_position.y + 1, entity->_position.x) == ' ') {
+        available_paths.north= true;
+    }
+    if (*map_get_wchar_from_coords(map, entity->_position.y - 1, entity->_position.x) == ' ') {
+        available_paths.south = true;
+    }
+    if (*map_get_wchar_from_coords(map, entity->_position.y, entity->_position.x + 1) == ' ') {
+        available_paths.east = true;
+    }
+    if (*map_get_wchar_from_coords(map, entity->_position.y, entity->_position.x - 1) == ' ') {
+        available_paths.west = true;
+    }
+
+    return available_paths;
 }

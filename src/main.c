@@ -1,6 +1,8 @@
 #include <ncurses.h>
 #include <locale.h>
 #include <assert.h>
+#include <stdlib.h>
+#include <time.h>
 #include "utilities.h"
 #include "entity.h"
 
@@ -15,6 +17,7 @@ void main_game();
 int main() {
     // Inicialización
     setlocale(LC_CTYPE, "");
+    srand(time(NULL));
     initscr();
     cbreak();
     noecho();
