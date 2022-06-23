@@ -33,7 +33,7 @@ void main_game() {
     int32_t input;
     do {
         draw_entities(game_window, entities);
-        usleep(100000);
+        usleep(150000);
 
         input = wgetch(game_window);
         switch(input) {
@@ -66,15 +66,17 @@ void draw_entities(WINDOW *const window, const Entity *entities[ENTITY_LIMIT]) {
 }
 
 void handle_movements(Entity *const entities[ENTITY_LIMIT], const Map * const map) {
-    int8_t delta_y = 0, delta_x = 0;
+    int8_t delta_y, delta_x;
     Entity *current_entity;
     for (uint8_t i = 0; i < ENTITY_LIMIT; i++) {
+        delta_y = 0;
+        delta_x = 0;
         current_entity = entities[i];
         switch (current_entity->facing_direction) {
-            case FACING_NORTH: delta_y--; break;
-            case FACING_SOUTH: delta_y++; break;
-            case FACING_EAST:  delta_x++; break;
-            case FACING_WEST:  delta_x--; break;
+            case FACING_NORTH: delta_y -= 1; break;
+            case FACING_SOUTH: delta_y += 1; break;
+            case FACING_EAST:  delta_x += 2; break;
+            case FACING_WEST:  delta_x -= 2; break;
         }
         entity_new_relative_position(current_entity, map, delta_y, delta_x);
     }

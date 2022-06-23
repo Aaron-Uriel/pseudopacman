@@ -42,7 +42,7 @@ void entity_new_relative_position(Entity *const entity, const Map *const map, co
         test_wch = *map_get_wchar_from_coords(map, entity->_position.y + delta_y, entity->_position.x + delta_x);
         if (test_wch == L' ') {
             entity->_position.y += delta_y;
-            entity->_position.x += (delta_x * 2);
+            entity->_position.x += delta_x;
         }
     }
 }
