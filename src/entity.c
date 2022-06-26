@@ -66,18 +66,54 @@ bool is_cardinal_point_available(const Entity *const entity, const Map *const ma
 
 struct AvailablePaths entity_get_available_paths(const Entity *const entity, const Map *const map) {
     struct AvailablePaths available_paths = { 0 };
-    if (*map_get_wchar_from_coords(map, entity->_position.y + 1, entity->_position.x) == ' ') {
-        available_paths.north= true;
+    wchar_t *test_wch;
+    test_wch = map_get_wchar_from_coords(map, entity->_position.y - 1, entity->_position.x);
+    if (*test_wch == ' ') {
+        available_paths.path_array[CARDINAL_NORTH] = true;
+        available_paths.free_paths_count++;
     }
-    if (*map_get_wchar_from_coords(map, entity->_position.y - 1, entity->_position.x) == ' ') {
-        available_paths.south = true;
+    test_wch = map_get_wchar_from_coords(map, entity->_position.y + 1, entity->_position.x);
+    if (*test_wch == ' ') {
+        available_paths.path_array[CARDINAL_SOUTH] = true;
+        available_paths.free_paths_count++;
     }
-    if (*map_get_wchar_from_coords(map, entity->_position.y, entity->_position.x + 1) == ' ') {
-        available_paths.east = true;
+    test_wch = map_get_wchar_from_coords(map, entity->_position.y, entity->_position.x + 2);
+    if (*test_wch == ' ') {
+        available_paths.path_array[CARDINAL_EAST] = true;
+        available_paths.free_paths_count++;
     }
-    if (*map_get_wchar_from_coords(map, entity->_position.y, entity->_position.x - 1) == ' ') {
-        available_paths.west = true;
+    test_wch = map_get_wchar_from_coords(map, entity->_position.y, entity->_position.x - 2);
+    if (*test_wch == ' ') {
+        available_paths.path_array[CARDINAL_WEST] = true;
+        available_paths.free_paths_count++;
     }
 
     return available_paths;
+}
+
+void entity_perform(Entity *const entity, const Map *const map) {
+    const struct AvailablePaths available_paths = entity_get_available_paths(entity, map);
+
+    const bool entity_is_blocked = (available_paths.path_array[entity->facing_direction] == false);
+    if (entity_is_blocked) {
+        enum Facing new_facing_direction;
+        do {
+            new_facing_direction = rand() % FACING_LIMIT;
+        } while (available_paths.path_array[new_facing_direction] == false);
+
+        entity->facing_direction = new_facing_direction;
+        
+        return;
+    } else
+    if (available_paths.free_paths_count > 2) {
+        const bool entity_decides_to_change_its_path = ((rand() % 10) >= 7)? true: false; // El chiste es que haya un 30% de posibilidades de que decida cambiar de camino
+        if (entity_decides_to_change_its_path) {
+            switch (entity->facing_direction) {
+                case FACING_NORTH: case FACING_SOUTH: entity->facing_direction = rand_one_or_the_other(FACING_EAST, FACING_WEST); break;
+                case FACING_EAST:  case FACING_WEST:  entity->facing_direction = rand_one_or_the_other(FACING_NORTH, FACING_SOUTH); break;
+                default: assert(false && "Default case should not be possible");
+            }
+        }
+    }
+    return;
 }

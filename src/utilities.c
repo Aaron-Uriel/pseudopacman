@@ -21,3 +21,8 @@ void draw_window_borders(WINDOW *const window) {
         mvwprintw(window, height - 1, i, u8"━");
     }
 }
+
+// Regresa un valor u otro de los que se pasaron
+double rand_one_or_the_other(double x, double y) {
+    return (rand() % 2)? x: y;
+}

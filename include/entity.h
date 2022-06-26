@@ -12,10 +12,8 @@ enum Color    { COLOR_PACMAN = 1, COLOR_BLINKY, COLOR_PINKY, COLOR_INKY, COLOR_C
 enum PositionType { POSITION_TYPE_CURRENT, POSITION_TYPE_PREVIOUS };
 
 struct AvailablePaths {
-    bool north;
-    bool south;
-    bool east;
-    bool west;
+    uint8_t free_paths_count;
+    bool path_array[CARDINAL_LIMIT];
 };
 
 typedef struct {
@@ -34,5 +32,6 @@ uint8_t entity_new_relative_position(Entity *const entity, const Map *const map,
 
 bool is_cardinal_point_available(const Entity *const entity, const Map *const map, const enum Cardinal cardinal_point);
 struct AvailablePaths entity_get_available_paths(const Entity *const entity, const Map *const map);
+void entity_perform(Entity *const entity, const Map *const map);
 
 #endif

@@ -1,6 +1,7 @@
 #ifndef UTILITIES_H
 #define UTILITIES_H
 
+#include <stdlib.h>
 #include <ncurses.h>
 #include "types.h"
 
@@ -16,5 +17,6 @@ struct Position {
 };
 
 void draw_window_borders(WINDOW *const window);
+double rand_one_or_the_other(double x, double y);
 
 #endif

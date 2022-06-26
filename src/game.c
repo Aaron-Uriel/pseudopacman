@@ -32,7 +32,7 @@ void main_game() {
 
     int32_t input;
     do {
-        draw_entities(game_window, entities);
+        draw_entities(game_window, (const Entity **)entities);
         usleep(150000);
 
         input = wgetch(game_window);
@@ -52,7 +52,7 @@ void draw_entities(WINDOW *const window, const Entity *entities[ENTITY_LIMIT]) {
     const  Entity   *current_entity;
     struct Position current_pos, previous_pos;
     for (uint8_t i = 0; i < ENTITY_LIMIT; i++) {
-        current_entity     = entities[i];
+        current_entity = entities[i];
         current_pos  = entity_get_position(current_entity, POSITION_TYPE_CURRENT);
         previous_pos = entity_get_position(current_entity, POSITION_TYPE_PREVIOUS);
 
@@ -66,17 +66,16 @@ void draw_entities(WINDOW *const window, const Entity *entities[ENTITY_LIMIT]) {
 }
 
 void handle_movements(Entity *const entities[ENTITY_LIMIT], const Map * const map) {
-    bool entity_is_blocked, entity_will_change_path, path_determiner;
-    struct AvailablePaths available_paths;
-    enum   Facing possible_new_facing;
-
-
     int8_t delta_y, delta_x;
     Entity *current_entity;
     for (uint8_t i = 0; i < ENTITY_LIMIT; i++) {
-        delta_y = 0;
-        delta_x = 0;
+        delta_y = delta_x = 0;
         current_entity = entities[i];
+
+        if (current_entity->id != ENTITY_PACMAN) {
+            entity_perform(current_entity, map);
+        }
+
         switch (current_entity->facing_direction) {
             case FACING_NORTH: delta_y -= 1; break;
             case FACING_SOUTH: delta_y += 1; break;
@@ -84,34 +83,7 @@ void handle_movements(Entity *const entities[ENTITY_LIMIT], const Map * const ma
             case FACING_WEST:  delta_x -= 2; break;
             default: assert(false && "Default case should not be possible");
         }
-        entity_is_blocked = entity_new_relative_position(current_entity, map, delta_y, delta_x);
+        entity_new_relative_position(current_entity, map, delta_y, delta_x);
 
-        if (current_entity->id != ENTITY_PACMAN) {
-            if (entity_is_blocked == true) {
-                current_entity->facing_direction = rand() % FACING_LIMIT;
-            } else {
-                available_paths = entity_get_available_paths(current_entity, map);
-                entity_will_change_path = rand() % 2;
-                path_determiner = rand() % 2;
-
-                /*if (entity_will_change_path == false) {
-                    break;
-                }*/
-
-                switch (current_entity->facing_direction) {
-                    case FACING_NORTH: case FACING_SOUTH: possible_new_facing = (path_determiner)? FACING_EAST: FACING_WEST;   break;
-                    case FACING_EAST:  case FACING_WEST:  possible_new_facing = (path_determiner)? FACING_NORTH: FACING_SOUTH; break;
-                    default: assert(false && "Default case should not be possible");
-                }
-                
-                if ((possible_new_facing == FACING_NORTH && available_paths.north == true) || (possible_new_facing == FACING_SOUTH && available_paths.south == true)) {
-                    current_entity->facing_direction = possible_new_facing;
-                }
-                if ((possible_new_facing == FACING_EAST && available_paths.east == true) || (possible_new_facing == FACING_WEST && available_paths.west == true)) {
-                    current_entity->facing_direction = possible_new_facing;
-                }
-            }
-            
-        }
     }
 }
