@@ -17,6 +17,7 @@ struct Position {
 };
 
 void draw_window_borders(WINDOW *const window);
-double rand_one_or_the_other(double x, double y);
+double rand_one_or_the_other(const double x, const double y);
+char digit_to_char(const uint8_t digit);
 
 #endif

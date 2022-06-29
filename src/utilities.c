@@ -23,6 +23,10 @@ void draw_window_borders(WINDOW *const window) {
 }
 
 // Regresa un valor u otro de los que se pasaron
-double rand_one_or_the_other(double x, double y) {
+double rand_one_or_the_other(const double x, const double y) {
     return (rand() % 2)? x: y;
+}
+
+char digit_to_char(const uint8_t digit) {
+    return (digit + '0');
 }

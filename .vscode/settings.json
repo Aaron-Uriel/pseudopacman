@@ -2,6 +2,7 @@
     "files.associations": {
         "opaque_types.h": "c",
         "wchar.h": "c",
-        "streambuf": "c"
+        "streambuf": "c",
+        "assert.h": "c"
     }
 }

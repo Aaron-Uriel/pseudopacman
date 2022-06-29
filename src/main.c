@@ -1,10 +1,12 @@
-#include <ncurses.h>
-#include <locale.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <time.h>
+#include <locale.h>
+#include <assert.h>
+
+#include <ncurses.h>
+
 #include "utilities.h"
-#include "entity.h"
+#include "world.h"
 
 struct Resolution terminal_resolution;
 
