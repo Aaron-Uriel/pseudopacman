@@ -24,7 +24,7 @@ void main_game() {
     getmaxyx(stdscr, terminal_resolution.length, terminal_resolution.width);
 
     struct Resolution game_window_resolution = map_get_size(map);
-    game_window_resolution.width *= 2;
+    game_window_resolution.width *= CELL_AESTHETIC_WIDTH;
     WINDOW *const game_window_border = newwin(game_window_resolution.length+2, game_window_resolution.width+2, 0, 0);
     WINDOW *const game_window        = newwin(game_window_resolution.length, game_window_resolution.width, 1, 1);
     keypad(game_window, true);
@@ -44,22 +44,29 @@ void main_game() {
     map_draw(map, game_window);
     wrefresh(game_window);
 
+    uint8_t frame_tick_counter = 0;
     int32_t input;
     do {
         draw_entities(game_window, (const Entity **)entities);
         draw_info(info_window, (const Entity **)entities);
-        usleep(150000);
-
+        
         input = wgetch(game_window);
         wrefresh(info_window);
+
         switch(input) {
             case KEY_UP:    case 'w': player->facing_direction = FACING_NORTH; break;
             case KEY_DOWN:  case 's': player->facing_direction = FACING_SOUTH; break;
             case KEY_RIGHT: case 'd': player->facing_direction = FACING_EAST; break;
             case KEY_LEFT:  case 'a': player->facing_direction = FACING_WEST; break;
-            case ERR: ;
         }
-        handle_movements(entities, map);
+
+        if (frame_tick_counter == 14) {
+            handle_movements(entities, map);
+            frame_tick_counter = 0;
+        }
+
+        usleep(16667);
+        frame_tick_counter++;
     } while(true);
 
 }
