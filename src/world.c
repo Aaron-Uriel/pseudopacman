@@ -19,7 +19,7 @@ struct Cell *map_get_cell_from_coords(const Map *const map, const uint8_t y, con
 struct Position map_find_initial_entity_position_with_id(Map *const map, const uint8_t id) {
     assert(map->is_initialized == true);
 
-    const wchar_t id_string_to_find[] = {digit_to_char(id), ' ', '\0'};
+    const wchar_t id_wch = digit_to_char(id);
 
     struct Position initial_entity_position = { 0 };
     struct Cell *test_cell;
@@ -27,15 +27,15 @@ struct Position map_find_initial_entity_position_with_id(Map *const map, const u
         for (uint8_t column = 0; column < map->_size.width; column++) {
             test_cell = map_get_cell_from_coords(map, row, column);
 
-            if (test_cell->type != CELL_TYPE_WCHAR_STRING) { continue; }
+            if (test_cell->type != CELL_TYPE_WALL) { continue; }
 
-            if (wcscmp(test_cell->content.wch_str, id_string_to_find) == 0) {
+            if (test_cell->content == id_wch) {
                 initial_entity_position.y = row;
                 initial_entity_position.x = column;
 
                 // Cambiamos el tipo de la casilla y la reiniciamos ya que encontramos el id de la entidad
-                test_cell->type = CELL_TYPE_ENTITY_HOLDER;
-                memset(test_cell->content.entity_holder, 0, (ENTITY_LIMIT * sizeof(wchar_t)));
+                test_cell->type = CELL_TYPE_ENTITY_PATHWAY;
+                test_cell->content = ' ';
                 goto loop_exit;
             }
         }
@@ -45,39 +45,20 @@ struct Position map_find_initial_entity_position_with_id(Map *const map, const u
     return initial_entity_position;
 }
 
-int entity_update_entity_holder_position(Entity *const entity, Map *const map) {
-    struct Cell *const previous_cell = map_get_cell_from_coords(map, entity->_previous_position.y, entity->_previous_position.x);
-    struct Cell *const current_cell  = map_get_cell_from_coords(map, entity->_position.y, entity->_position.x);
-
-    previous_cell->content.entity_holder[entity->_entity_holder_position] = NULL;
-
-    for (int i = 0; i < ENTITY_LIMIT; i++) {
-        if (current_cell->content.entity_holder[i] == NULL) {
-            current_cell->content.entity_holder[i] = entity;
-            entity->_entity_holder_position = i;
-            return 0;
-        }
-    }
-    return 1;
-}
-
 // Fin de funciones solo usadas en este archivo
 
 
-Entity *entity_init(Map *const map, const enum EntityID id, const wchar_t aspect[CELL_STRING_LIMIT]) {
+Entity *entity_init(Map *const map, const enum EntityID id, const wchar_t aspect) {
     Entity *const new_entity = malloc(sizeof(*new_entity));
 
     struct Position new_entity_position = map_find_initial_entity_position_with_id(map, id);
 
     new_entity->_position = new_entity_position;
     new_entity->_previous_position = new_entity_position;
-    new_entity->_entity_holder_position = 0;
     new_entity->facing_direction = FACING_EAST;
     new_entity->id = id;
     new_entity->color = id + 1;
-    wcscpy(new_entity->aspect, aspect);
-
-    entity_update_entity_holder_position(new_entity, map);
+    new_entity->aspect = aspect;
 
     return new_entity;
 }
@@ -103,10 +84,9 @@ uint8_t entity_set_new_relative_position(Entity *const entity, const Map *const 
     struct Cell *test_cell;
     if (((entity->_position.y + delta_y) >= 0 && (entity->_position.y + delta_y) < map_size.length) && ((entity->_position.x + delta_x) >= 0 && (entity->_position.x + delta_x) < map_size.width)) {
         test_cell = map_get_cell_from_coords(map, entity->_position.y + delta_y, entity->_position.x + delta_x);
-        if (test_cell->type == CELL_TYPE_ENTITY_HOLDER) {
+        if (test_cell->type == CELL_TYPE_ENTITY_PATHWAY) {
             entity->_position.y += delta_y;
             entity->_position.x += delta_x;
-
 
             return 0;
         }
@@ -114,40 +94,26 @@ uint8_t entity_set_new_relative_position(Entity *const entity, const Map *const 
     return 1;
 }
 
-bool is_cardinal_point_available(const Entity *const entity, const Map *const map, const enum Cardinal cardinal_point) {
-    struct Position test_position = entity_get_position(entity, POSITION_TYPE_CURRENT);
-    switch (cardinal_point) {
-        case CARDINAL_NORTH: test_position.y -= 1; break;
-        case CARDINAL_SOUTH: test_position.y += 1; break;
-        case CARDINAL_EAST: test_position.x += 1; break;
-        case CARDINAL_WEST: test_position.x -= 1; break;
-        default: assert(false && "Default case should not be possible");
-    }
-
-    struct Cell *test_cell = map_get_cell_from_coords(map, test_position.y, test_position.x);
-    return (test_cell->type == CELL_TYPE_ENTITY_HOLDER)? true: false;
-}
-
 struct AvailablePaths entity_get_available_paths(const Entity *const entity, const Map *const map) {
     struct AvailablePaths available_paths = { 0 };
     struct Cell *test_cell;
     test_cell = map_get_cell_from_coords(map, entity->_position.y - 1, entity->_position.x);
-    if (test_cell->type == CELL_TYPE_ENTITY_HOLDER) {
+    if (test_cell->type == CELL_TYPE_ENTITY_PATHWAY) {
         available_paths.path_array[CARDINAL_NORTH] = true;
         available_paths.free_paths_count++;
     }
     test_cell = map_get_cell_from_coords(map, entity->_position.y + 1, entity->_position.x);
-    if (test_cell->type == CELL_TYPE_ENTITY_HOLDER) {
+    if (test_cell->type == CELL_TYPE_ENTITY_PATHWAY) {
         available_paths.path_array[CARDINAL_SOUTH] = true;
         available_paths.free_paths_count++;
     }
     test_cell = map_get_cell_from_coords(map, entity->_position.y, entity->_position.x + 1);
-    if (test_cell->type == CELL_TYPE_ENTITY_HOLDER) {
+    if (test_cell->type == CELL_TYPE_ENTITY_PATHWAY) {
         available_paths.path_array[CARDINAL_EAST] = true;
         available_paths.free_paths_count++;
     }
     test_cell = map_get_cell_from_coords(map, entity->_position.y, entity->_position.x - 1);
-    if (test_cell->type == CELL_TYPE_ENTITY_HOLDER) {
+    if (test_cell->type == CELL_TYPE_ENTITY_PATHWAY) {
         available_paths.path_array[CARDINAL_WEST] = true;
         available_paths.free_paths_count++;
     }
@@ -203,8 +169,7 @@ Map *map_init() {
     rewind(map_file);
 
     const uint8_t map_length = row;
-    const uint8_t map_real_width = column + 1;
-    const uint8_t map_width  = column / CELL_WIDTH;
+    const uint8_t map_width  = column;
     Map *const new_map = calloc(1, sizeof(*new_map) + sizeof(struct Cell[map_length][map_width]));
     new_map->_size.length = map_length;
     new_map->_size.width = map_width;
@@ -212,27 +177,23 @@ Map *map_init() {
     struct Cell (*map_matrix)[map_width] = (struct Cell(*)[map_width]) new_map->_cell_map;
 
 
-    wchar_t current_line[map_real_width], cell_str[CELL_STRING_LIMIT]; cell_str[CELL_WIDTH] = '\0';
-    uint8_t map_matrix_column;
+    wchar_t current_line[map_width + 1];
     struct Cell *current_cell;
     for (row = 0; row < map_length; row++) {
-        fgetws(current_line, map_real_width, map_file);
+        fgetws(current_line, map_width + 1, map_file);
 
+        for (column = 0; column < wcslen(current_line); column++) {
+            current_cell = &map_matrix[row][column];
 
-        for (column = 0, map_matrix_column = 0; column < wcslen(current_line); column += CELL_WIDTH, map_matrix_column++) {
-            current_cell = &map_matrix[row][map_matrix_column];
-
-            switch (current_line[column]) {
+            current_cell->content = current_line[column];
+            switch (current_cell->content) {
                 case ' ':
-                    current_cell->type = CELL_TYPE_ENTITY_HOLDER;
-                    break;
+                    current_cell->type = CELL_TYPE_ENTITY_PATHWAY;
+                break;
                 case '\n': case '\0':
                     continue;
                 default: 
-                    wcsncpy(cell_str, current_line + column, CELL_WIDTH);
-
-                    current_cell->type = CELL_TYPE_WCHAR_STRING;
-                    wcscpy(current_cell->content.wch_str, cell_str);
+                    current_cell->type = CELL_TYPE_WALL;
             }
         }
     }
@@ -260,12 +221,7 @@ void map_draw(const Map *const map, WINDOW *const window) {
         wmove(window, row, 0);
         for (uint8_t column = 0; column < map_size.width; column++) {
             current_cell = map_get_cell_from_coords(map, row, column);
-            if (current_cell->type == CELL_TYPE_WCHAR_STRING) {
-                wprintw(window, "%S", current_cell->content.wch_str);
-            } else {
-                wprintw(window, "  ");
-                //waddstr(window, "  ");
-            }
+            wprintw(window, "%lc%lc", current_cell->content, current_cell->content);
         }
     }
     

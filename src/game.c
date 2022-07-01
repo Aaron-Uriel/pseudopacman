@@ -6,8 +6,8 @@
 
 #include "world.h"
 
-void draw_entities(WINDOW *const window, const Entity *entities[ENTITY_LIMIT]);
-void draw_info(WINDOW *const info_win, const Entity *player);
+void draw_entities(WINDOW *const window, const Entity *const entities[ENTITY_LIMIT]);
+void draw_info(WINDOW *const info_win, const Entity *const entities[ENTITY_LIMIT]);
 void handle_movements(Entity *const entities[ENTITY_LIMIT], const Map * const map);
 
 void main_game() {
@@ -15,7 +15,7 @@ void main_game() {
     Map *const map = map_init();
     Entity *entities[ENTITY_LIMIT];
     for (enum EntityID id = ENTITY_PACMAN; id < ENTITY_LIMIT; id++) {
-        entities[id] = entity_init(map, id, L"██");
+        entities[id] = entity_init(map, id, L'█');
     }
     Entity *player = entities[0];
 
@@ -47,7 +47,7 @@ void main_game() {
     int32_t input;
     do {
         draw_entities(game_window, (const Entity **)entities);
-        draw_info(info_window, player);
+        draw_info(info_window, (const Entity **)entities);
         usleep(150000);
 
         input = wgetch(game_window);
@@ -64,7 +64,7 @@ void main_game() {
 
 }
 
-void draw_entities(WINDOW *const window, const Entity *entities[ENTITY_LIMIT]) {
+void draw_entities(WINDOW *const window, const Entity *const entities[ENTITY_LIMIT]) {
     const  Entity   *current_entity;
     struct Position current_pos, previous_pos;
     for (uint8_t i = 0; i < ENTITY_LIMIT; i++) {
@@ -73,21 +73,23 @@ void draw_entities(WINDOW *const window, const Entity *entities[ENTITY_LIMIT]) {
         previous_pos = entity_get_position(current_entity, POSITION_TYPE_PREVIOUS);
 
         // Los caracteres que representan el mapa ocupan dos espacios
-        current_pos.x  *= 2;
-        previous_pos.x *= 2;
+        current_pos.x  *= CELL_AESTHETIC_WIDTH;
+        previous_pos.x *= CELL_AESTHETIC_WIDTH;
 
         mvwprintw(window, previous_pos.y, previous_pos.x, "  ");
 
         wattron  (window, COLOR_PAIR(current_entity->color));
-        mvwprintw(window, current_pos.y, current_pos.x, "%ls", current_entity->aspect);
+        mvwprintw(window, current_pos.y, current_pos.x, "%lc%lc", current_entity->aspect, current_entity->aspect);
         wattroff (window, COLOR_PAIR(current_entity->color));
     }
 
 }
 
-void draw_info(WINDOW *const info_win, const Entity *player) {
-    mvwprintw(info_win, 0, 0, "Posición de pacman (%d, %d)       ", player->_position.y, player->_position.x);
-    mvwprintw(info_win, 1, 0, "Indice del stack de entidades: %d        ", player->_entity_holder_position);
+void draw_info(WINDOW *const info_win, const Entity *const entities[ENTITY_LIMIT]) {
+    mvwprintw(info_win, 0, 0, "Posición de las entidades:");
+    for (uint8_t i = 0 ; i < ENTITY_LIMIT; i++) {
+        mvwprintw(info_win, i + 1, 0, "entities[%d]: {y = %d, x = %d}  ", i, entities[i]->_position.y, entities[i]->_position.x);
+    }
 }
 
 void handle_movements(Entity *const entities[ENTITY_LIMIT], const Map * const map) {

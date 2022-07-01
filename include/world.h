@@ -7,9 +7,8 @@
 #include "utilities.h"
 
 enum Consts {
-    CELL_STRING_LIMIT = 3,
     FILE_MAX_WIDTH = 80,
-    CELL_WIDTH = 2
+    CELL_AESTHETIC_WIDTH = 2
 };
 
 enum Cardinal { CARDINAL_NORTH, CARDINAL_SOUTH, CARDINAL_EAST, CARDINAL_WEST, CARDINAL_LIMIT};
@@ -31,18 +30,12 @@ typedef struct {
     enum    EntityID id;
     enum    Color    color;
 
-    wchar_t aspect[CELL_STRING_LIMIT];
+    wchar_t aspect;
 } Entity;
 
-enum CellClear  { CELL_CLEAR_TRUE, CELL_CLEAR_FALSE};
-enum CellType   { CELL_TYPE_WCHAR_STRING, CELL_TYPE_ENTITY_HOLDER };
-
 struct Cell {
-    enum CellType type;
-    union {
-        wchar_t wch_str[CELL_STRING_LIMIT];
-        Entity *entity_holder[ENTITY_LIMIT];
-    } content;
+    enum { CELL_TYPE_WALL, CELL_TYPE_ENTITY_PATHWAY } type;
+    wchar_t content;
 };
 
 typedef struct {
@@ -52,7 +45,7 @@ typedef struct {
 } Map;
 
 
-Entity *entity_init(Map *const map, const enum EntityID id, const wchar_t aspect[CELL_STRING_LIMIT]);
+Entity *entity_init(Map *const map, const enum EntityID id, const wchar_t aspect);
 struct Position entity_get_position(const Entity *const entity, const enum PositionType position_type);
 uint8_t entity_set_new_relative_position(Entity *const entity, const Map *const map, const int8_t delta_y, const int8_t delta_x);
 struct AvailablePaths entity_get_available_paths(const Entity *const entity, const Map *const map);
