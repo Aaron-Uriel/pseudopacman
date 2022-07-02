@@ -10,9 +10,6 @@
 
 struct Resolution terminal_resolution;
 
-enum Option { OPTION_START_GAME, OPTION_LIST_SCORES, OPTION_EDIT_SCORES, OPTION_EXIT, OPTION_LIMIT};
-const char option_text[OPTION_LIMIT][30] = { "Nuevo juego.", "Listar puntajes", "Editar puntajes", "Salir"};
-
 void set_color_pairs();
 void main_game();
 
@@ -30,50 +27,40 @@ int main() {
     set_color_pairs();
     assert(has_colors() == true);
 
-    // Preparativos para mostrar el menú
-    const struct Resolution menu_resolution = {
-        .length = OPTION_LIMIT,
-        .width  = 30
+    const uint8_t title_center = (terminal_resolution.width / 2) - (57 / 2);
+    const uint8_t title_up_margin = terminal_resolution.length * 0.1;
+    const wchar_t title_array[6][58] = {
+        L"██████╗  █████╗  ██████╗    ███╗   ███╗ █████╗ ███╗   ██╗",
+        L"██╔══██╗██╔══██╗██╔════╝    ████╗ ████║██╔══██╗████╗  ██║",
+        L"██████╔╝███████║██║         ██╔████╔██║███████║██╔██╗ ██║",
+        L"██╔═══╝ ██╔══██║██║         ██║╚██╔╝██║██╔══██║██║╚██╗██║",
+        L"██║     ██║  ██║╚██████╗    ██║ ╚═╝ ██║██║  ██║██║ ╚████║",
+        L"╚═╝     ╚═╝  ╚═╝ ╚═════╝    ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝"
     };
-    const struct Position menu_start_position = {
-        .y = (terminal_resolution.length / 2) - (menu_resolution.length/2),
-        .x = (terminal_resolution.width / 2)  - (menu_resolution.width/2)
+    for (uint8_t i = 0; i < 6; i++) {
+        mvprintw(i + title_up_margin, title_center, "%S", title_array[i]);
+    }
+    refresh();
+
+    const struct Resolution text_box_resolution = { .length = 1, .width  = 30 };
+    const struct Position text_box_start_position = { 
+        .y = (terminal_resolution.length / 2), 
+        .x = (terminal_resolution.width / 2)  - (text_box_resolution.width/2 )
     };
-    WINDOW * const menu_window_border = newwin(menu_resolution.length+2, menu_resolution.width+2, menu_start_position.y-1, menu_start_position.x-1);
-    WINDOW * const menu_window        = newwin(menu_resolution.length,   menu_resolution.width,   menu_start_position.y,   menu_start_position.x);
-    keypad(menu_window, TRUE);
+    WINDOW * const text_box_window_border = newwin(text_box_resolution.length+2, text_box_resolution.width+2, text_box_start_position.y-1, text_box_start_position.x-1);
+    WINDOW * const text_box_window        = newwin(text_box_resolution.length,   text_box_resolution.width,   text_box_start_position.y,   text_box_start_position.x);
 
-    draw_window_borders(menu_window_border);
-    wrefresh(menu_window_border);
+    draw_window_borders(text_box_window_border);
+    wrefresh(text_box_window_border);
 
-    //Bucle del menú
-    enum Option selected_option = OPTION_START_GAME;
-    bool is_enter_pressed = false;
-    uint32_t input;
-    while (true) {
-        for (enum Option option = 0; option < OPTION_LIMIT; option++) {
-            mvwprintw(menu_window, option, 0, " %d.- %-20s [ ]", option + 1, option_text[option]);
-        }
-        mvwaddch(menu_window, selected_option, 27, '*');
+    uint32_t input;                                                 
+    do {
+        wprintw(text_box_window, "Presione ENTER para iniciar.");
+        input = wgetch(text_box_window);
+    } while (input != '\n');
 
-        input = wgetch(menu_window);
-        mvwaddch(menu_window, selected_option, 27, ' ');
-        switch (input) {
-            case KEY_UP: case 'w': case 'W': selected_option--; break;
-            case KEY_DOWN: case 's': case 'S': selected_option++; break;
-            case '\n': case 'd': is_enter_pressed = true;
-        }
-        if (selected_option == OPTION_LIMIT) { selected_option = 0; }
-        if (selected_option >  OPTION_LIMIT) { selected_option = OPTION_LIMIT - 1;}
+    main_game();
 
-        if (is_enter_pressed) {
-            switch (selected_option) {
-                case OPTION_START_GAME: main_game();
-                case OPTION_EXIT: goto menu_loop_end;
-            }
-        }
-    };
-    menu_loop_end: ;
     return 0;
 }
 
