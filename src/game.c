@@ -35,24 +35,25 @@ void main_game() {
     info_window_border_resolution.width  = terminal_resolution.width - (game_window_resolution.width + 2);
     WINDOW *const info_window_border = newwin(info_window_border_resolution.length, info_window_border_resolution.width, 0, game_window_resolution.width+2);
     WINDOW *const info_window        = newwin(info_window_border_resolution.length - 2, info_window_border_resolution.width - 2, 1, game_window_resolution.width+2+1);
-
+    
     // Dibujamos la interface del juego y el mapa
     draw_window_borders(game_window_border);
     draw_window_borders(info_window_border);
     wrefresh(game_window_border);
     wrefresh(info_window_border);
     map_draw(map, game_window);
-    wrefresh(game_window);
 
-    uint8_t frame_tick_counter = 0;
+    uint8_t frame_tick_counter = 1;
     int32_t input;
     do {
-        draw_entities(game_window, (const Entity **)entities);
-        draw_info(info_window, (const Entity **)entities);
-        
-        input = wgetch(game_window);
-        wrefresh(info_window);
+        if (frame_tick_counter == 1) {
+            draw_entities(game_window, (const Entity **)entities);
+            draw_info(info_window, (const Entity **)entities);
+            //wrefresh(game_window);
+            wrefresh(info_window);
+        }
 
+        input = wgetch(game_window);
         switch(input) {
             case KEY_UP:    case 'w': player->facing_direction = FACING_NORTH; break;
             case KEY_DOWN:  case 's': player->facing_direction = FACING_SOUTH; break;
@@ -60,12 +61,12 @@ void main_game() {
             case KEY_LEFT:  case 'a': player->facing_direction = FACING_WEST; break;
         }
 
-        if (frame_tick_counter == 14) {
+        if (frame_tick_counter == 25) {
             handle_movements(entities, map);
             frame_tick_counter = 0;
         }
 
-        usleep(16667);
+        usleep(10000);
         frame_tick_counter++;
     } while(true);
 
