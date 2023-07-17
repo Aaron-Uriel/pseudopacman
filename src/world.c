@@ -150,7 +150,7 @@ void entity_perform(Entity *const entity, const Map *const map) {
 
 
 Map *map_init() {
-    FILE *map_file = fopen("/home/auriel/Documentos/pseudopacman/files/map.txt", "r");
+    FILE *map_file = fopen("./files/map.txt", "r");
     assert(map_file != NULL);
 
     wchar_t character;
